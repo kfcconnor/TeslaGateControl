@@ -157,3 +157,10 @@ packages/EXILED.2.0.7/lib/net472/Exiled.Events.dll
 packages/EXILED.2.0.7/lib/net472/Exiled.Loader.dll
 packages/EXILED.2.0.7/lib/net472/Exiled.Permissions.dll
 packages/EXILED.2.0.7/lib/net472/Exiled.Updater.dll
+packages/EXILED.2.0.10/lib/net472/Exiled.Updater.dll
+packages/EXILED.2.0.10/lib/net472/Exiled.Permissions.dll
+packages/EXILED.2.0.10/lib/net472/Exiled.Loader.dll
+packages/EXILED.2.0.10/lib/net472/Exiled.Events.dll
+packages/EXILED.2.0.10/lib/net472/Exiled.API.dll
+packages/EXILED.2.0.10/EXILED.2.0.10.nupkg
+packages/EXILED.2.0.10/.signature.p7s

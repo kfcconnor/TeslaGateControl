@@ -12,6 +12,7 @@ namespace TeslaGateControl
     using Exiled.API.Features;
     using Exiled.Events.EventArgs;
     using Player = Exiled.Events.Handlers.Player;
+    using Server = Exiled.Events.Handlers.Map;
     
 
     public class TeslaPlugin : Plugin<config>
@@ -33,6 +34,7 @@ namespace TeslaGateControl
                 allowedRoles = Config.allowedRoles;
                 eHandler = new eventHandlers(allowedRoles);
             }
+
             Player.TriggeringTesla += eHandler.PlayerTesla;
             Log.Info("Tesla Gate Control V1.0.0 has started Successfully.");
         }
@@ -103,8 +105,7 @@ namespace TeslaGateControl
                 }
             }
 
-        }
-        
+        } 
     }
 
 }
