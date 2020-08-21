@@ -14,10 +14,14 @@ namespace TeslaGateControl
         public bool IsEnabled { get; set; } = true;
         //Switches between Role determining who avoids the tesla gate and Card determining who avoids the tesla gate
         public bool cardMode { get; set; } = false;
+        //Determines if Holding an active card would allow for the gate to be held open for an amount of time
+        public bool cardSwipe { get; set; } = false;
         //lists allowed roles that can get through the gate without setting it off. IDs or names can be used 
         public List<RoleType> allowedRoles { get; set; } = new List<RoleType>();
         //lists allowed Items that can get through the gate without setting it off. IDs or names can be used
         public List<ItemType> allowedCards { get; set; } = new List<ItemType>();
+        //sets the amount of time the gate will be held if the card swipe is active
+        public int cardHoldTime { get; set; } = 5;
 
         public void ConfigValidator()
         {

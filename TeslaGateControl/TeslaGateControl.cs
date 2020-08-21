@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Exiled;
+using MEC;
 
 
 namespace TeslaGateControl
@@ -12,31 +13,19 @@ namespace TeslaGateControl
     using Exiled.API.Features;
     using Exiled.Events.EventArgs;
     using Player = Exiled.Events.Handlers.Player;
-    using Server = Exiled.Events.Handlers.Map;
+    using Server = Exiled.Events.Handlers.Server;
     
 
     public class TeslaPlugin : Plugin<config>
     {
         public eventHandlers eHandler;
-        public bool AllowCards;
-        public List<ItemType> allowedCards;
-        public List<RoleType> allowedRoles;
+
         public override void OnEnabled()
         {
-            AllowCards = Config.cardMode;
-            if (AllowCards)
-            {
-                allowedCards = Config.allowedCards;
-                eHandler = new eventHandlers(allowedCards);
-            }
-            else
-            {
-                allowedRoles = Config.allowedRoles;
-                eHandler = new eventHandlers(allowedRoles);
-            }
-
+            eHandler = new eventHandlers(this);
+            Server.RoundStarted += eHandler.onRoundStart;
             Player.TriggeringTesla += eHandler.PlayerTesla;
-            Log.Info("Tesla Gate Control V1.0.0 has started Successfully.");
+            Log.Info("Tesla Gate Control V1.1.0 'The Swipening' has started Successfully.");
         }
 
         public override void OnDisabled()
@@ -53,59 +42,139 @@ namespace TeslaGateControl
 
     public class eventHandlers
     {
-        private bool allowCard;
-        private List<ItemType> AllowedTypes;
-        private List<RoleType> allowedRoles;
-        public eventHandlers(List<RoleType> aRoles)
+        public TeslaPlugin plugin;
+        public config Config;
+        public bool gateLock;
+        public List<lockedTesla> lt;
+        public CoroutineHandle coroutine;
+
+
+        public eventHandlers(TeslaPlugin plugin)
         {
-            allowedRoles = aRoles;
-            allowCard = false;
+            this.plugin = plugin;
+            Config = plugin.Config;
         }
-        public eventHandlers(List<ItemType> aType)
+
+        public void onRoundStart()
         {
-            AllowedTypes = aType;
-            allowCard = true;
+            lockedTesla temp;
+            lt = new List<lockedTesla>();
+            foreach (Room room in Map.Rooms)
+            {
+                if (room.Name.Contains("Tesla"))
+                {
+                    temp = new lockedTesla();
+                    temp.roomName = room.Name;
+                    temp.locked = false;
+                    lt.Add(temp);
+                }
+            }
+
+        }
+
+        public int gateId(string currentRoom)
+        {
+            int roomId = 0;
+
+            foreach (lockedTesla r in lt)
+            {
+                if (r.roomName == currentRoom)
+                {
+                    break;
+                }
+                roomId++;
+            }
+
+            return roomId;
         }
 
         public void PlayerTesla(TriggeringTeslaEventArgs ev)
         {
-            if (allowCard)
+            string currentTelsa = ev.Player.CurrentRoom.Name;
+            if (Config.cardSwipe)
             {
-                bool validCard = false;
-                var playerInventory = ev.Player.Inventory.items;
-                if (playerInventory != null)
+                foreach(lockedTesla r in lt)
                 {
-                    foreach (var item in playerInventory)
-                    {
-                        if (AllowedTypes.Count > 0 && !AllowedTypes.Contains(item.id))
-                            continue;
-                        else if (AllowedTypes.Contains(item.id))
-                        {
-                            validCard = true;
-                            break;
-                        }
-                           
-                    }
-                }
-                if (validCard)
-                {
-                    ev.IsTriggerable = false;
-                }
-            }
-
-
-            if (allowedRoles != null)
-            {
-                foreach (RoleType role in allowedRoles)
-                {
-                    if (ev.Player.Role == role)
+                    if (r.locked && currentTelsa == r.roomName)
                     {
                         ev.IsTriggerable = false;
+                        return;
                     }
+                       
                 }
             }
+            switch (Config.cardMode)
+            {
+                case (true):
+                    {
+                        bool validCard = false;
+                        var playerHeldItem = ev.Player.CurrentItem;
+                        var playerInventory = ev.Player.Inventory.items;
+                        if (playerInventory != null)
+                        {
+                            
+                            foreach (var item in playerInventory)
+                            {
+                                if (Config.allowedCards.Count > 0 && !Config.allowedCards.Contains(item.id))
+                                    continue;
+                                else if (Config.allowedCards.Contains(item.id))
+                                {
+                                    validCard = true;
+                                    break;
+                                }
 
-        } 
+                            }
+                            if (Config.cardSwipe)
+                            {
+                                if (Config.allowedCards.Contains(playerHeldItem.id))
+                                {
+                                    int id = gateId(currentTelsa);
+                                    coroutine = Timing.RunCoroutine(teslaSwipe(id));
+                                }
+                            }
+                        }
+                        if (validCard)
+                        {
+                            ev.IsTriggerable = false;
+                        }
+                        break;
+                    }
+                case (false):
+                    {
+                        if (Config.allowedRoles != null)
+                        {
+                            foreach (RoleType role in Config.allowedRoles)
+                            {
+                                if (ev.Player.Role == role)
+                                {
+                                    ev.IsTriggerable = false;
+                                }
+                            }
+                        }
+                        break;
+                    }
+            }
+            
+
+        }
+
+        public IEnumerator<float> teslaSwipe(int id)
+        {
+            lockedTesla rtl = lt[id];
+            rtl.locked = true;
+            lt[id] = rtl;
+            yield return Timing.WaitForSeconds(Config.cardHoldTime);
+            rtl.locked = false;
+            lt[id] = rtl;
+            
+        }
+
+    }
+
+    public struct lockedTesla
+    {
+        public string roomName;
+        public bool locked;
     }
 
 }
