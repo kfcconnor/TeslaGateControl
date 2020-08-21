@@ -9,5 +9,7 @@ Config Item | Description | Example Input
 ----------- | ----------- | ------------- 
 IsEnabled | Enables or Disables the mod | true
 cardMode | Switchs between Role and Card determining what allows access through tesla gates | true
+cardSwipe | Allows people with the correct card to temporaily turn a tesla gate off by holding the card as they pass it | true
 allowedRoles | Lists the allowed role names or ids to be used to determine who gets access through tesla gates | [ClassD, 15, 4]
 allowedCards | Lists the allowed card names or ids that are used to determine who gets access through the tesla gates. Note: Ids or items that are not keycards will not be allowed by the system | [0, KeycardGuard, 6]
+cardHoldTime | Sets the amount of time in seconds the tesla gates will be held for after someone with the card out passes through | 5
